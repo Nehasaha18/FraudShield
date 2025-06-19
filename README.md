@@ -1,4 +1,4 @@
-FraudShield – AI-Powered Fraud Detection (Offline ZIP)
+FraudShield – AI-Powered Fraud Detection 
 
 Run Steps:
 1. Double-click start.bat
