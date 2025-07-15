@@ -1,43 +1,37 @@
 import React, { useState } from 'react';
-import api from '../api'; // Use the configured API instance
+import axios from 'axios';
 import NetworkGraph from './NetworkGraph';
 
 const Dashboard = ({ data, setData }) => {
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState('');
   const [showGraph, setShowGraph] = useState(false);
-  const [error, setError] = useState('');
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file || !file.name.endsWith('.csv')) {
-      setError('Please upload a CSV file');
+      alert('Please upload a CSV file');
       return;
     }
 
     setFileName(file.name);
     setLoading(true);
-    setError('');
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await api.post('/detect/', formData, {
+      const response = await axios.post('http://localhost:8000/detect/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       setData(response.data);
+      setLoading(false);
     } catch (error) {
       console.error('Error:', error);
-      if (error.response?.status === 401) {
-        setError('Authentication required. Please login as admin first.');
-      } else {
-        setError('Error processing file. Please check if the backend is running.');
-      }
-    } finally {
+      alert('Error processing file. Please check if the backend is running.');
       setLoading(false);
     }
   };
@@ -77,20 +71,6 @@ const Dashboard = ({ data, setData }) => {
           </div>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div style={{ 
-            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-            color: '#ef4444', 
-            padding: '1rem', 
-            borderRadius: '8px', 
-            marginBottom: '1rem',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
-
         {/* Statistics Grid */}
         {data && (
           <div className="stats-grid">
@@ -108,8 +88,7 @@ const Dashboard = ({ data, setData }) => {
             </div>
             <div className="stat-card">
               <div className="stat-value">
-                {data.total_transactions > 0 ? 
-                  ((data.total_transactions - data.fraud_detected) / data.total_transactions * 100).toFixed(1) : 0}%
+                {((data.total_transactions - data.fraud_detected) / data.total_transactions * 100).toFixed(1)}%
               </div>
               <div className="stat-label">Detection Accuracy</div>
             </div>
@@ -133,9 +112,6 @@ const Dashboard = ({ data, setData }) => {
               Choose File
             </button>
             {fileName && <div className="file-name">Selected: {fileName}</div>}
-            <div style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.9rem' }}>
-              <p>Note: For file upload, you need to be authenticated. Please login as admin first.</p>
-            </div>
           </div>
         )}
 
@@ -160,14 +136,14 @@ const Dashboard = ({ data, setData }) => {
         )}
 
         {/* Network Graph */}
-        {data && showGraph && data.graph_data && (
+        {data && showGraph && (
           <div style={{ marginBottom: '2rem' }}>
             <NetworkGraph graphData={data.graph_data} />
           </div>
         )}
 
         {/* Fraud Alerts */}
-        {data && data.fraud_transactions && data.fraud_transactions.length > 0 && (
+        {data && data.fraud_transactions.length > 0 && (
           <div className="fraud-alerts">
             <div className="alerts-header">
               <h3>🚨 Fraud Alerts</h3>

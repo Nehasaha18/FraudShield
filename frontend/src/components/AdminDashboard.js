@@ -1,28 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api'; // Use the configured API instance
+import axios from 'axios';
 import NetworkGraph from './NetworkGraph';
 
 const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showGraph, setShowGraph] = useState(false);
-  const [error, setError] = useState('');
 
   const loadBackendData = async () => {
     setLoading(true);
-    setError('');
     try {
-      const response = await api.get('/admin/data/');
+      const response = await axios.get('http://localhost:8000/admin/data/');
       setData(response.data);
+      setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
-      if (error.response?.status === 401) {
-        setError('Session expired. Please login again.');
-        logout();
-      } else {
-        setError('Error loading data. Please ensure the backend is running.');
-      }
-    } finally {
+      alert('Error loading data. Please ensure the backend is running.');
       setLoading(false);
     }
   };
@@ -33,7 +26,7 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
 
   const handleTransactionAction = async (transactionId, action) => {
     try {
-      await api.post('/admin/transaction-action/', {
+      await axios.post('http://localhost:8000/admin/transaction-action/', {
         transaction_id: transactionId,
         action: action
       });
@@ -48,18 +41,13 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
       
       alert(`Transaction ${action === 'blocked' ? 'blocked' : 'verified'} successfully`);
     } catch (error) {
-      console.error('Error updating transaction:', error);
-      if (error.response?.status === 401) {
-        logout();
-      } else {
-        alert('Error updating transaction status');
-      }
+      alert('Error updating transaction status');
     }
   };
 
   const generateReport = async () => {
     try {
-      const response = await api.get('/admin/generate-report/', {
+      const response = await axios.get('http://localhost:8000/admin/generate-report/', {
         responseType: 'blob'
       });
       
@@ -74,47 +62,14 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
       
       alert('Report generated successfully!');
     } catch (error) {
-      console.error('Error generating report:', error);
-      if (error.response?.status === 401) {
-        logout();
-      } else {
-        alert('Error generating report');
-      }
+      alert('Error generating report');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
     setIsLoggedIn(false);
     showPage('home');
   };
-
-  if (error) {
-    return (
-      <div id="adminDashboard" className="page active">
-        <div className="dashboard">
-          <div className="dashboard-header">
-            <h2 className="dashboard-title">Central Bank Admin Dashboard</h2>
-            <button className="btn btn-secondary" onClick={logout}>Logout</button>
-          </div>
-          <div style={{ 
-            textAlign: 'center', 
-            color: '#ef4444', 
-            marginTop: '2rem',
-            padding: '2rem',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            borderRadius: '8px'
-          }}>
-            <h3>Error</h3>
-            <p>{error}</p>
-            <button className="btn btn-primary" onClick={loadBackendData}>
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div id="adminDashboard" className="page active">
@@ -147,7 +102,7 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
 
             <div className="admin-actions">
               <button className="btn btn-primary" onClick={loadBackendData}>
-                Refresh Data
+                Load Backend Data
               </button>
               <button className="btn btn-secondary" onClick={generateReport}>
                 Generate Report

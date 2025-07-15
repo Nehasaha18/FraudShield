@@ -1,45 +1,25 @@
 import React, { useState } from 'react';
-import api from '../api'; // Fixed import path
+import axios from 'axios';
 
 const AdminLogin = ({ setIsLoggedIn, showPage }) => {
-  const [username, setUsername] = useState('');
+  const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
     
     try {
-      // Create FormData for OAuth2 login (as expected by FastAPI)
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
-      
-      const response = await api.post('/auth/token', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await axios.post('http://localhost:8000/admin/login/', {
+        username: adminId,
+        password: password
       });
 
-      if (response.data.access_token) {
-        localStorage.setItem('access_token', response.data.access_token);
+      if (response.data.status === 'success') {
         setIsLoggedIn(true);
         showPage('adminDashboard');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      if (error.response?.status === 429) {
-        setError('Too many login attempts. Please try again later.');
-      } else if (error.response?.status === 401) {
-        setError('Invalid credentials. Please try again.');
-      } else {
-        setError('Connection failed. Please check if the backend is running.');
-      }
-    } finally {
-      setLoading(false);
+      alert('Invalid credentials. Please try again.');
     }
   };
 
@@ -53,21 +33,15 @@ const AdminLogin = ({ setIsLoggedIn, showPage }) => {
         <h3>Admin Portal</h3>
         
         <form className="login-form" onSubmit={handleAdminLogin}>
-          {error && (
-            <div style={{ color: '#ef4444', marginBottom: '1rem', textAlign: 'center' }}>
-              {error}
-            </div>
-          )}
           <div className="form-group">
-            <label className="form-label">Username</label>
+            <label className="form-label">Admin ID</label>
             <input 
               type="text" 
               className="form-input" 
-              placeholder="Enter Username" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter Admin ID" 
+              value={adminId}
+              onChange={(e) => setAdminId(e.target.value)}
               required 
-              disabled={loading}
             />
           </div>
           <div className="form-group">
@@ -79,19 +53,10 @@ const AdminLogin = ({ setIsLoggedIn, showPage }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required 
-              disabled={loading}
             />
           </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
+          <button type="submit" className="btn btn-primary">Login</button>
         </form>
-        
-        <div style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.9rem', textAlign: 'center' }}>
-          <p>Test Credentials:</p>
-          <p><strong>Admin:</strong> centralbank / admin123</p>
-          <p><strong>Analyst:</strong> analyst / analyst123</p>
-        </div>
       </div>
     </div>
   );
