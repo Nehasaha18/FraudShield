@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import api from '../api';
 
 const AdminLogin = ({ setIsLoggedIn, showPage }) => {
   const [adminId, setAdminId] = useState('');
@@ -9,12 +10,17 @@ const AdminLogin = ({ setIsLoggedIn, showPage }) => {
     e.preventDefault();
     
     try {
-      const response = await axios.post('http://localhost:8000/admin/login/', {
-        username: adminId,
-        password: password
+      const params = new URLSearchParams();
+      params.append('username', adminId);
+      params.append('password', password);
+      params.append('grant_type', '');
+      const response = await api.post('/auth/token', params, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       });
-
-      if (response.data.status === 'success') {
+      if (response.data.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
         setIsLoggedIn(true);
         showPage('adminDashboard');
       }

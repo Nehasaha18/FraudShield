@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NetworkGraph from './NetworkGraph';
+import api from '../api';
 
 const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
   const [data, setData] = useState(null);
@@ -10,7 +11,7 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
   const loadBackendData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8000/admin/data/');
+      const response = await api.get('/admin/data/');
       setData(response.data);
       setLoading(false);
     } catch (error) {
@@ -26,7 +27,7 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
 
   const handleTransactionAction = async (transactionId, action) => {
     try {
-      await axios.post('http://localhost:8000/admin/transaction-action/', {
+      await api.post('/admin/transaction-action/', {
         transaction_id: transactionId,
         action: action
       });
@@ -47,7 +48,7 @@ const AdminDashboard = ({ setIsLoggedIn, showPage }) => {
 
   const generateReport = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/admin/generate-report/', {
+      const response = await api.get('/admin/generate-report/', {
         responseType: 'blob'
       });
       

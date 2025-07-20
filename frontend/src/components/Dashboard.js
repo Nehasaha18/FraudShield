@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import NetworkGraph from './NetworkGraph';
+import api from '../api';
 
 const Dashboard = ({ data, setData }) => {
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ const Dashboard = ({ data, setData }) => {
     formData.append('file', file);
 
     try {
-      const response = await axios.post('http://localhost:8000/detect/', formData, {
+      const response = await api.post('/detect/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
